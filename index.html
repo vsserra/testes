@@ -1,170 +1,32 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>Videoconferência com WebRTC</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            background-color: #f2f2f2;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding-top: 100px;
+        }
+
+        h1 {
+            font-size: 36px;
+            color: #333333;
+            margin-bottom: 20px;
+        }
+
+        p {
+            font-size: 18px;
+            color: #666666;
+            margin-bottom: 40px;
+        }
+    </style>
+    <title>Em Manutenção</title>
 </head>
 <body>
-  <h1>Minha Videoconferência</h1>
-  <div>
-    <video id="localVideo" autoplay></video>
-    <video id="remoteVideo" autoplay></video>
-  </div>
-  <button id="startButton">Iniciar</button>
-  <button id="hangupButton">Encerrar</button>
-
-  <script>
-    // Acessa os elementos da página
-    const startButton = document.getElementById('startButton');
-    const hangupButton = document.getElementById('hangupButton');
-    const localVideo = document.getElementById('localVideo');
-    const remoteVideo = document.getElementById('remoteVideo');
-
-    // Variáveis para armazenar as informações da conexão
-    let localStream;
-    let remoteStream;
-    let localPeerConnection;
-    let remotePeerConnection;
-
-    // Função para capturar o áudio/vídeo do usuário
-    async function start() {
-      try {
-        // Captura o áudio/vídeo do usuário
-        localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
-
-        // Exibe o stream local no elemento de vídeo
-        localVideo.srcObject = localStream;
-
-        // Cria a conexão peer-to-peer local
-        localPeerConnection = new RTCPeerConnection();
-
-        // Adiciona as faixas de mídia do stream local à conexão local
-        localStream.getTracks().forEach(track => localPeerConnection.addTrack(track, localStream));
-
-        // Cria a conexão peer-to-peer remota
-        remotePeerConnection = new RTCPeerConnection();
-
-        // Configura o manipulador de eventos para o evento 'track' da conexão remota
-        remotePeerConnection.ontrack = handleRemoteTrackAdded;
-
-        // Configura o manipulador de eventos para o evento 'icecandidate' da conexão local
-        localPeerConnection.onicecandidate = handleLocalICECandidate;
-
-        // Configura o manipulador de eventos para o evento 'icecandidate' da conexão remota
-        remotePeerConnection.onicecandidate = handleRemoteICECandidate;
-
-        // Configura o manipulador de eventos para o evento 'negotiationneeded' da conexão local
-        localPeerConnection.onnegotiationneeded = handleNegotiationNeeded;
-
-        // Adiciona o stream remoto à conexão remota
-        localPeerConnection.addEventListener('track', handleRemoteTrackAdded);
-
-        // Estabelece a conexão entre as duas conexões peer-to-peer
-        localPeerConnection.addEventListener('icecandidate', handleLocalICECandidate);
-        remotePeerConnection.addEventListener('icecandidate', handleRemoteICECandidate);
-
-        // Configura a descrição da conexão local como a descrição remota e vice-versa
-        localPeerConnection.addEventListener('iceconnectionstatechange', handleICEConnectionStateChange);
-        remotePeerConnection.addEventListener('iceconnectionstatechange', handleICEConnectionStateChange);
-
-        // Exibe o stream remoto no elemento de vídeo
-        remoteVideo.srcObject = new MediaStream();
-
-        // Adiciona as faixas de mídia do stream remoto à conexão remota
-        remotePeerConnection.addEventListener('track', event => {
-          event.streams[0].getTracks().forEach(track => {
-            remoteStream.addTrack(track);
-          });
-        });
-
-        // Cria a oferta da conexão local
-        const offer = await localPeerConnection.createOffer();
-
-        // Define a descrição local como a oferta da conexão local
-        await localPeerConnection.setLocalDescription(offer);
-
-        // Define a descrição remota como a oferta da conexão local
-        await remotePeerConnection.setRemoteDescription(offer);
-
-        // Cria a resposta da conexão remota
-        const answer = await remotePeerConnection.createAnswer();
-
-        // Define a descrição local como a resposta da conexão remota
-        await remotePeerConnection.setLocalDescription(answer);
-
-        // Define a descrição remota como a resposta da conexão remota
-        await localPeerConnection.setRemoteDescription(answer);
-
-        console.log('Conexão estabelecida com sucesso!');
-      } catch (error) {
-        console.error('Erro ao iniciar a videoconferência:', error);
-      }
-    }
-
-    // Função para encerrar a chamada
-    function hangup() {
-      localPeerConnection.close();
-      remotePeerConnection.close();
-      localPeerConnection = null;
-      remotePeerConnection = null;
-      hangupButton.disabled = true;
-      startButton.disabled = false;
-      console.log('Chamada encerrada.');
-    }
-
-    // Manipulador de eventos para o evento 'track' da conexão remota
-    function handleRemoteTrackAdded(event) {
-      remoteStream = event.streams[0];
-      remoteVideo.srcObject = remoteStream;
-    }
-
-    // Manipulador de eventos para o evento 'icecandidate' da conexão local
-    async function handleLocalICECandidate(event) {
-      if (event.candidate) {
-        try {
-          await remotePeerConnection.addIceCandidate(event.candidate);
-        } catch (error) {
-          console.error('Erro ao adicionar o ICE candidate remoto:', error);
-        }
-      }
-    }
-
-    // Manipulador de eventos para o evento 'icecandidate' da conexão remota
-    async function handleRemoteICECandidate(event) {
-      if (event.candidate) {
-        try {
-          await localPeerConnection.addIceCandidate(event.candidate);
-        } catch (error) {
-          console.error('Erro ao adicionar o ICE candidate local:', error);
-        }
-      }
-    }
-
-    // Manipulador de eventos para o evento 'negotiationneeded' da conexão local
-    async function handleNegotiationNeeded() {
-      try {
-        const offer = await localPeerConnection.createOffer();
-        await localPeerConnection.setLocalDescription(offer);
-        await remotePeerConnection.setRemoteDescription(offer);
-
-        const answer = await remotePeerConnection.createAnswer();
-        await remotePeerConnection.setLocalDescription(answer);
-        await localPeerConnection.setRemoteDescription(answer);
-      } catch (error) {
-        console.error('Erro durante a negociação:', error);
-      }
-    }
-
-    // Manipulador de eventos para o evento 'iceconnectionstatechange' da conexão local
-    function handleICEConnectionStateChange() {
-      if (localPeerConnection.iceConnectionState === 'disconnected') {
-        hangup();
-      }
-    }
-
-    // Configura os manipuladores de eventos dos botões
-    startButton.addEventListener('click', start);
-    hangupButton.addEventListener('click', hangup);
-  </script>
+    <h1>Estamos em manutenção</h1>
+    <p>Desculpe-nos pelo transtorno. Estamos trabalhando para melhorar nossos serviços e voltaremos em breve.</p>
 </body>
 </html>
