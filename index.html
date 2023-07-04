@@ -16,13 +16,10 @@
             min-height: 100vh;
             text-align: center;
             zoom: 0.8;
-
-            
         }
         
         h1 {
             color: #333;
-            
         }
         
         input[type="text"] {
@@ -31,7 +28,6 @@
             border: 2px solid #ccc;
             border-radius: 4px;
             width: 650px; /* Defina a largura desejada aqui */
-            
         }
         
         button {
@@ -49,17 +45,10 @@
             background-color: #45a049;
         }
         
-        p#resultado {
+        #resultado {
             margin-top: 20px;
-        }
-        
-        a {
-            color: #337ab7;
-            text-decoration: none;
-        }
-        
-        a:hover {
-            text-decoration: underline;
+            width: 100%;
+            height: 500px;
         }
     </style>
 </head>
@@ -67,24 +56,22 @@
     <h1>Transformar para hiperlink:</h1>
     <input type="text" id="textInput" placeholder="Digite o URL">
     <button onclick="transformarTexto()">Converter</button>
-    <p id="resultado"></p>
+    <div id="resultado"></div>
 
     <script>
         function transformarTexto() {
             var url = document.getElementById("textInput").value;
             var resultado = document.getElementById("resultado");
 
-            // Cria um elemento de âncora (hyperlink)
-            var link = document.createElement("a");
-            link.href = url;
-            link.textContent = url;
-            link.target = "_blank"; // Abre o link em uma nova aba
-
-            // Limpa o resultado antes de adicionar o novo hyperlink
+            // Limpa o resultado antes de adicionar o novo iframe
             resultado.innerHTML = "";
 
-            // Adiciona o hyperlink ao resultado
-            resultado.appendChild(link);
+            // Cria um iframe para visualizar o site
+            var iframe = document.createElement("iframe");
+            iframe.src = url;
+            iframe.style.width = "100%";
+            iframe.style.height = "100%";
+            resultado.appendChild(iframe);
         }
     </script>
 </body>
